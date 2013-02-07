@@ -18,17 +18,21 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlexTable;
+import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
+import com.google.gwt.user.client.ui.TabPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class Stockwatch implements EntryPoint {
 	private static final int REFRESH_INTERVAL = 5000; // ms
 
-	private VerticalPanel mainPanel = new VerticalPanel();
+	private HorizontalPanel mainPanel = new HorizontalPanel();
+	private VerticalPanel watcherPanel = new VerticalPanel();
 	private FlexTable populationFlexTable = new FlexTable();
+	private TabPanel dropTabPanel = new TabPanel();
 	private HorizontalPanel addPanel = new HorizontalPanel();
 	private TextBox newCountryTextBox = new TextBox();
 	private Button addCountryButton = new Button("Add");
@@ -127,12 +131,20 @@ public class Stockwatch implements EntryPoint {
 		// Assemble Main panel.
 	    errorMsgLabel.setStyleName("errorMessage");
 	    errorMsgLabel.setVisible(false);
+	    
+	    dropTabPanel.setStyleName("dropTable");
+	    dropTabPanel.add(new HTML("Foo"), "Bar");
+	    dropTabPanel.selectTab(0);
 
-	    mainPanel.add(errorMsgLabel);
-		mainPanel.add(populationFlexTable);
-		mainPanel.add(addPanel);
-		mainPanel.add(lastUpdatedLabel);
-
+	    watcherPanel.add(errorMsgLabel);
+		watcherPanel.add(populationFlexTable);
+		watcherPanel.add(addPanel);
+		watcherPanel.add(lastUpdatedLabel);
+		
+		mainPanel.add(watcherPanel);
+		mainPanel.add(new Label("Drag stuff --->"));
+		mainPanel.add(dropTabPanel);
+		
 		// Associate the Main panel with the HTML host page.
 		RootPanel.get("stockList").add(mainPanel);
 
