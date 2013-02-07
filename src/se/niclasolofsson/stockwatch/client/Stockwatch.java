@@ -3,6 +3,7 @@ package se.niclasolofsson.stockwatch.client;
 import java.util.ArrayList;
 import java.util.Date;
 
+import com.allen_sauer.gwt.dnd.client.PickupDragController;
 import com.google.gwt.user.client.Timer;
 
 import com.google.gwt.core.client.EntryPoint;
@@ -40,6 +41,8 @@ public class Stockwatch implements EntryPoint {
 	private ArrayList<String> countries = new ArrayList<String>();
     private PopulationServiceAsync populationSvc = GWT.create(PopulationService.class);
     private Label errorMsgLabel = new Label();
+    private PickupDragController dragController;
+    private DropController dropController;
 
 	  private void refreshWatchList() {
 		    // Initialize the service proxy.
@@ -147,7 +150,13 @@ public class Stockwatch implements EntryPoint {
 		
 		// Associate the Main panel with the HTML host page.
 		RootPanel.get("stockList").add(mainPanel);
-
+		
+		dragController = new PickupDragController(RootPanel.get(), false);
+		dropController = new DropController(dropTabPanel);
+		
+		dragController.registerDropController(dropController);
+		// dragController.makeDraggable(addCountryButton);
+		
 		newCountryTextBox.setFocus(true);
 
 		// Setup timer to refresh list automatically.
@@ -200,6 +209,7 @@ public class Stockwatch implements EntryPoint {
 		int row = populationFlexTable.getRowCount();
 		countries.add(name);
 		populationFlexTable.setText(row, 0, name);
+		// dragController.makeDraggable(populationFlexTable.getWidget(row, 0));
 		
 		populationFlexTable.setWidget(row, 2, new Label());
 	    populationFlexTable.getCellFormatter().addStyleName(row, 1, "watchListNumericColumn");
@@ -217,5 +227,7 @@ public class Stockwatch implements EntryPoint {
 		});
 		populationFlexTable.setWidget(row, 3, removeCountryButton);
 		refreshWatchList();
+		
+		// dragController.makeDraggable(removeCountryButton);
 	}
 }
