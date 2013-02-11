@@ -45,6 +45,8 @@ public class Stockwatch implements EntryPoint {
     private Label errorMsgLabel = new Label();
     private DragController dragController;
     private DropController dropController;
+    
+    private Country test;
 
 	  private void refreshWatchList() {
 		    // Initialize the service proxy.
@@ -53,7 +55,7 @@ public class Stockwatch implements EntryPoint {
 		    }
 
 		    // Set up the callback object.
-		    AsyncCallback<Population[]> callback = new AsyncCallback<Population[]>() {
+		    AsyncCallback<Country[]> callback = new AsyncCallback<Country[]>() {
 		      public void onFailure(Throwable caught) {
 		          // If the country name is not found, display an error message.
 		          String details = caught.getMessage();
@@ -65,7 +67,7 @@ public class Stockwatch implements EntryPoint {
 		          errorMsgLabel.setVisible(true);
 		      }
 
-		      public void onSuccess(Population[] result) {
+		      public void onSuccess(Country[] result) {
 		        updateTable(result);
 		      }
 		    };
@@ -74,8 +76,8 @@ public class Stockwatch implements EntryPoint {
 		    populationSvc.getPopulations(countries.toArray(new String[0]), callback);
 		  }
 
-	private void updateTable(Population[] prices) {
-		for (Population price : prices) {
+	private void updateTable(Country[] prices) {
+		for (Country price : prices) {
 			updateTable(price);
 		}
 
@@ -87,29 +89,14 @@ public class Stockwatch implements EntryPoint {
 	    errorMsgLabel.setVisible(false);
 	};
 
-	private void updateTable(Population price) {
-		int row = countries.indexOf(price.getName()) + 1;
+	private void updateTable(Country country) {
+		int row = countries.indexOf(country.getName()) + 1;
 
-		// Format the data in the Price and Change fields.
-		String priceText = NumberFormat.getFormat("#,##0.00").format(price.getAmount());
-		NumberFormat changeFormat = NumberFormat.getFormat("+#,##0.00;-#,##0.00");
-		String changeText = changeFormat.format(price.getChange());
-		String changePercentText = changeFormat.format(price.getChangePercent());
+		// Format the data in the population field
+		String populationText = NumberFormat.getFormat("#,##0.00").format(country.getPopulation());
 
 		// Populate the Price and Change fields with new data.
-		populationFlexTable.setText(row, 1, priceText);
-	    Label changeWidget = (Label)populationFlexTable.getWidget(row, 2);
-	    changeWidget.setText(changeText + " (" + changePercentText + "%)");
-	    
-	    String styleName = "noChange";
-
-	    if (price.getChangePercent() < -0.1f) {
-	    	styleName = "negativeChange";
-	    } 
-	    else if (price.getChangePercent() > 0.1f) {
-	    	styleName = "positiveChange";
-	    }
-	    changeWidget.setStyleName(styleName);
+		populationFlexTable.setText(row, 1, populationText);
 	}
 
 	/**
@@ -119,16 +106,14 @@ public class Stockwatch implements EntryPoint {
 		// Create table for population data.
 		populationFlexTable.setText(0, 0, "Country");
 		populationFlexTable.setText(0, 1, "Population");
-		populationFlexTable.setText(0, 2, "Change");
-		populationFlexTable.setText(0, 3, "Remove");
+		populationFlexTable.setText(0, 2, "Remove");
 		
 		populationFlexTable.setCellPadding(6);
 		
 		populationFlexTable.getRowFormatter().addStyleName(0, "watchListHeader");
 		populationFlexTable.addStyleName("watchList");
 	    populationFlexTable.getCellFormatter().addStyleName(0, 1, "watchListNumericColumn");
-	    populationFlexTable.getCellFormatter().addStyleName(0, 2, "watchListNumericColumn");
-	    populationFlexTable.getCellFormatter().addStyleName(0, 3, "watchListRemoveColumn");
+	    populationFlexTable.getCellFormatter().addStyleName(0, 2, "watchListRemoveColumn");
 
 		addPanel.add(newCountryTextBox);
 		addPanel.add(addCountryButton);
@@ -138,8 +123,6 @@ public class Stockwatch implements EntryPoint {
 	    errorMsgLabel.setVisible(false);
 	    
 	    dropTabPanel.setStyleName("dropTable");
-	    dropTabPanel.add(new HTML("Foo"), "Bar");
-	    dropTabPanel.selectTab(0);
 
 	    watcherPanel.add(errorMsgLabel);
 		watcherPanel.add(populationFlexTable);
@@ -211,19 +194,19 @@ public class Stockwatch implements EntryPoint {
 		int row = populationFlexTable.getRowCount();
 		countries.add(name);
 		
-		Label lName = new Label(name);
+		test = new Country(name);
+		CountryDraggable nameLabel = new CountryDraggable(name, test);
+		
+		test.setPopulation(125);
 		HorizontalPanel nameParent = new HorizontalPanel();
-		nameParent.add(lName);
+		nameParent.add(nameLabel);
 		populationFlexTable.setWidget(row, 0, nameParent);
 		
-		dragController.makeDraggable(lName);
-
-
+		dragController.makeDraggable(nameLabel);
 		
 		populationFlexTable.setWidget(row, 2, new Label());
 	    populationFlexTable.getCellFormatter().addStyleName(row, 1, "watchListNumericColumn");
-	    populationFlexTable.getCellFormatter().addStyleName(row, 2, "watchListNumericColumn");
-	    populationFlexTable.getCellFormatter().addStyleName(row, 3, "watchListRemoveColumn");
+	    populationFlexTable.getCellFormatter().addStyleName(row, 2, "watchListRemoveColumn");
 
 		Button removeCountryButton = new Button("x");
 		
@@ -234,7 +217,7 @@ public class Stockwatch implements EntryPoint {
 				populationFlexTable.removeRow(removedIndex + 1);
 			}
 		});
-		populationFlexTable.setWidget(row, 3, removeCountryButton);
+		populationFlexTable.setWidget(row, 2, removeCountryButton);
 		refreshWatchList();
 	}
 }
