@@ -1,7 +1,5 @@
 package se.niclasolofsson.stockwatch.client;
 
-import java.util.ArrayList;
-
 import com.allen_sauer.gwt.dnd.client.DragContext;
 import com.allen_sauer.gwt.dnd.client.PickupDragController;
 import com.google.gwt.user.client.ui.AbsolutePanel;

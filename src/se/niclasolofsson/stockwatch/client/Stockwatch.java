@@ -1,9 +1,9 @@
 package se.niclasolofsson.stockwatch.client;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Date;
 
-import com.allen_sauer.gwt.dnd.client.PickupDragController;
 import com.google.gwt.user.client.Timer;
 
 import com.google.gwt.core.client.EntryPoint;
@@ -13,15 +13,11 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
-import com.google.gwt.event.dom.client.MouseDownEvent;
-import com.google.gwt.event.dom.client.MouseDownHandler;
-import com.google.gwt.i18n.client.NumberFormat;
 import com.google.gwt.i18n.shared.DateTimeFormat;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlexTable;
-import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
@@ -40,13 +36,13 @@ public class Stockwatch implements EntryPoint {
 	private TextBox newCountryTextBox = new TextBox();
 	private Button addCountryButton = new Button("Add");
 	private Label lastUpdatedLabel = new Label();
-	private ArrayList<String> countries = new ArrayList<String>();
     private PopulationServiceAsync populationSvc = GWT.create(PopulationService.class);
     private Label errorMsgLabel = new Label();
     private DragController dragController;
     private DropController dropController;
     
-    private Country test;
+	private HashMap<String, Country> countries = new HashMap<String, Country>();
+	private ArrayList<String> rows = new ArrayList<String>();
 
 	  private void refreshWatchList() {
 		    // Initialize the service proxy.
@@ -71,14 +67,14 @@ public class Stockwatch implements EntryPoint {
 		        updateTable(result);
 		      }
 		    };
-
+		    
 		    // Make the call to the stock price service.
-		    populationSvc.getPopulations(countries.toArray(new String[0]), callback);
+		    populationSvc.getPopulations(countries.keySet().toArray(new String[0]), callback);
 		  }
 
-	private void updateTable(Country[] prices) {
-		for (Country price : prices) {
-			updateTable(price);
+	private void updateTable(Country[] countries) {
+		for (Country country : countries) {
+			updateTable(country);
 		}
 
 		// Display timestamp showing last refresh.
@@ -90,13 +86,13 @@ public class Stockwatch implements EntryPoint {
 	};
 
 	private void updateTable(Country country) {
-		int row = countries.indexOf(country.getName()) + 1;
-
-		// Format the data in the population field
-		String populationText = NumberFormat.getFormat("#,##0.00").format(country.getPopulation());
-
-		// Populate the Price and Change fields with new data.
-		populationFlexTable.setText(row, 1, populationText);
+		String name = country.getName();
+		
+		Country c = countries.get(name);
+		c.setPopulation(country.getPopulation());
+		
+		int row = rows.indexOf(name) + 1;
+		populationFlexTable.setText(row, 1, Integer.toString(country.getPopulation()));
 	}
 
 	/**
@@ -187,17 +183,17 @@ public class Stockwatch implements EntryPoint {
 
 		newCountryTextBox.setText("");
 
-		if (countries.contains(name)) {
+		if (countries.containsKey(name)) {
 			return;
 		}
 
 		int row = populationFlexTable.getRowCount();
-		countries.add(name);
 		
-		test = new Country(name);
-		CountryDraggable nameLabel = new CountryDraggable(name, test);
+		Country country = new Country(name);
+		countries.put(name, country);
+		rows.add(name);
+		CountryDraggable nameLabel = new CountryDraggable(name, country);
 		
-		test.setPopulation(125);
 		HorizontalPanel nameParent = new HorizontalPanel();
 		nameParent.add(nameLabel);
 		populationFlexTable.setWidget(row, 0, nameParent);
@@ -212,8 +208,10 @@ public class Stockwatch implements EntryPoint {
 		
 		removeCountryButton.addClickHandler(new ClickHandler() {
 			public void onClick(ClickEvent event) {
-				int removedIndex = countries.indexOf(name);
-				countries.remove(removedIndex);
+				int removedIndex = rows.indexOf(name);
+				countries.remove(name);
+				rows.remove(removedIndex);
+				
 				populationFlexTable.removeRow(removedIndex + 1);
 			}
 		});
