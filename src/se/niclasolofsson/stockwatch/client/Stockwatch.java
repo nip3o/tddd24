@@ -13,6 +13,8 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
+import com.google.gwt.event.dom.client.MouseDownEvent;
+import com.google.gwt.event.dom.client.MouseDownHandler;
 import com.google.gwt.i18n.client.NumberFormat;
 import com.google.gwt.i18n.shared.DateTimeFormat;
 import com.google.gwt.user.client.Window;
@@ -41,7 +43,7 @@ public class Stockwatch implements EntryPoint {
 	private ArrayList<String> countries = new ArrayList<String>();
     private PopulationServiceAsync populationSvc = GWT.create(PopulationService.class);
     private Label errorMsgLabel = new Label();
-    private PickupDragController dragController;
+    private DragController dragController;
     private DropController dropController;
 
 	  private void refreshWatchList() {
@@ -79,7 +81,7 @@ public class Stockwatch implements EntryPoint {
 
 		// Display timestamp showing last refresh.
 		lastUpdatedLabel.setText("Last updated: "
-				+ DateTimeFormat.getFormat(DateTimeFormat.PredefinedFormat.DATE_MEDIUM)
+				+ DateTimeFormat.getFormat(DateTimeFormat.PredefinedFormat.DATE_TIME_FULL)
 							    .format(new Date()));
 	    // Clear any errors.
 	    errorMsgLabel.setVisible(false);
@@ -151,9 +153,10 @@ public class Stockwatch implements EntryPoint {
 		// Associate the Main panel with the HTML host page.
 		RootPanel.get("stockList").add(mainPanel);
 		
-		dragController = new PickupDragController(RootPanel.get(), false);
+		dragController = new DragController(RootPanel.get(), false);
 		dropController = new DropController(dropTabPanel);
 		
+		dragController.setBehaviorDragProxy(true);
 		dragController.registerDropController(dropController);
 		// dragController.makeDraggable(addCountryButton);
 		
@@ -185,12 +188,11 @@ public class Stockwatch implements EntryPoint {
 					addCountry();
 				}
 			}
-
 		});
 	}
 
 	private void addCountry() {
-		// First letter uppercase, the rest lowercase
+		// Make the first letter uppercase, the rest lowercase
 		String lower = newCountryTextBox.getText().toLowerCase().trim();
 		final String name = Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
 
@@ -208,8 +210,15 @@ public class Stockwatch implements EntryPoint {
 
 		int row = populationFlexTable.getRowCount();
 		countries.add(name);
-		populationFlexTable.setText(row, 0, name);
-		// dragController.makeDraggable(populationFlexTable.getWidget(row, 0));
+		
+		Label lName = new Label(name);
+		HorizontalPanel nameParent = new HorizontalPanel();
+		nameParent.add(lName);
+		populationFlexTable.setWidget(row, 0, nameParent);
+		
+		dragController.makeDraggable(lName);
+
+
 		
 		populationFlexTable.setWidget(row, 2, new Label());
 	    populationFlexTable.getCellFormatter().addStyleName(row, 1, "watchListNumericColumn");
@@ -227,7 +236,5 @@ public class Stockwatch implements EntryPoint {
 		});
 		populationFlexTable.setWidget(row, 3, removeCountryButton);
 		refreshWatchList();
-		
-		// dragController.makeDraggable(removeCountryButton);
 	}
 }
