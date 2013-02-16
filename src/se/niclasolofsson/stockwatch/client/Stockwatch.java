@@ -22,6 +22,7 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TabPanel;
+import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
@@ -34,6 +35,7 @@ public class Stockwatch implements EntryPoint {
 	private TabPanel dropTabPanel = new TabPanel();
 	private HorizontalPanel addPanel = new HorizontalPanel();
 	private TextBox newCountryTextBox = new TextBox();
+	private TextArea newDataTextArea = new TextArea();
 	private Button addCountryButton = new Button("Add");
 	private Label lastUpdatedLabel = new Label();
     private PopulationServiceAsync populationSvc = GWT.create(PopulationService.class);
@@ -98,8 +100,8 @@ public class Stockwatch implements EntryPoint {
 	/**
 	 * Create the view
 	 */
-	public void onModuleLoad() {
-		// Create table for population data.
+	public void onModuleLoad() {		
+		// Country/population-table
 		populationFlexTable.setText(0, 0, "Country");
 		populationFlexTable.setText(0, 1, "Population");
 		populationFlexTable.setText(0, 2, "Remove");
@@ -111,33 +113,38 @@ public class Stockwatch implements EntryPoint {
 	    populationFlexTable.getCellFormatter().addStyleName(0, 1, "watchListNumericColumn");
 	    populationFlexTable.getCellFormatter().addStyleName(0, 2, "watchListRemoveColumn");
 
+	    // New table entry widgets
 		addPanel.add(newCountryTextBox);
 		addPanel.add(addCountryButton);
-		
-		// Assemble Main panel.
+
+		// Error-message label
 	    errorMsgLabel.setStyleName("errorMessage");
 	    errorMsgLabel.setVisible(false);
 	    
+	    // Droppable tab panel
 	    dropTabPanel.setStyleName("dropTable");
 
-	    watcherPanel.add(errorMsgLabel);
+	    // Assemble the whole table including controls
 		watcherPanel.add(populationFlexTable);
+	    watcherPanel.add(errorMsgLabel);
 		watcherPanel.add(addPanel);
 		watcherPanel.add(lastUpdatedLabel);
+		watcherPanel.add(newDataTextArea);
 		
+		// Put everything together
 		mainPanel.add(watcherPanel);
 		mainPanel.add(new Label("Drag stuff --->"));
 		mainPanel.add(dropTabPanel);
 		
-		// Associate the Main panel with the HTML host page.
+		// Add main panel to the page
 		RootPanel.get("stockList").add(mainPanel);
 		
+		// Set up drag and drop
 		dragController = new DragController(RootPanel.get(), false);
 		dropController = new DropController(dropTabPanel);
 		
 		dragController.setBehaviorDragProxy(true);
 		dragController.registerDropController(dropController);
-		// dragController.makeDraggable(addCountryButton);
 		
 		newCountryTextBox.setFocus(true);
 
