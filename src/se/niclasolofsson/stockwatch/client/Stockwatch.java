@@ -37,6 +37,7 @@ public class Stockwatch implements EntryPoint {
 	private TextBox newCountryTextBox = new TextBox();
 	private TextArea newDataTextArea = new TextArea();
 	private Button addCountryButton = new Button("Add");
+	private Button addDataButton = new Button("Submit new data");
 	private Label lastUpdatedLabel = new Label();
     private PopulationServiceAsync populationSvc = GWT.create(PopulationService.class);
     private Label errorMsgLabel = new Label();
@@ -47,11 +48,6 @@ public class Stockwatch implements EntryPoint {
 	private ArrayList<String> rows = new ArrayList<String>();
 
 	  private void refreshWatchList() {
-		    // Initialize the service proxy.
-		    if (populationSvc == null) {
-		      populationSvc = GWT.create(PopulationService.class);
-		    }
-
 		    // Set up the callback object.
 		    AsyncCallback<Country[]> callback = new AsyncCallback<Country[]>() {
 		      public void onFailure(Throwable caught) {
@@ -100,7 +96,17 @@ public class Stockwatch implements EntryPoint {
 	/**
 	 * Create the view
 	 */
-	public void onModuleLoad() {		
+	public void onModuleLoad() {
+		AsyncCallback<Void> callback = new AsyncCallback<Void>() {
+		      public void onFailure(Throwable caught) {
+		    	  errorMsgLabel.setText("Could not init database!");
+		    	  errorMsgLabel.setVisible(true);
+		      }
+		      public void onSuccess(Void result) {}
+		};
+		populationSvc = GWT.create(PopulationService.class);
+		populationSvc.init(callback);
+		
 		// Country/population-table
 		populationFlexTable.setText(0, 0, "Country");
 		populationFlexTable.setText(0, 1, "Population");
@@ -116,6 +122,13 @@ public class Stockwatch implements EntryPoint {
 	    // New table entry widgets
 		addPanel.add(newCountryTextBox);
 		addPanel.add(addCountryButton);
+		
+		// Add listener to add country-button
+		addCountryButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				addCountry();
+			}
+		});
 
 		// Error-message label
 	    errorMsgLabel.setStyleName("errorMessage");
@@ -128,8 +141,18 @@ public class Stockwatch implements EntryPoint {
 		watcherPanel.add(populationFlexTable);
 	    watcherPanel.add(errorMsgLabel);
 		watcherPanel.add(addPanel);
-		watcherPanel.add(lastUpdatedLabel);
 		watcherPanel.add(newDataTextArea);
+		watcherPanel.add(addDataButton);
+		watcherPanel.add(lastUpdatedLabel);
+		
+		// Add listener to add country-button
+		addDataButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				addData();
+			}
+		});
+		
+		newDataTextArea.setText("England 52234000\nGermany 82217837");
 		
 		// Put everything together
 		mainPanel.add(watcherPanel);
@@ -158,13 +181,6 @@ public class Stockwatch implements EntryPoint {
 
 		refreshTimer.scheduleRepeating(REFRESH_INTERVAL);
 
-		// Add listener to add-button
-		addCountryButton.addClickHandler(new ClickHandler() {
-			public void onClick(ClickEvent event) {
-				addCountry();
-			}
-		});
-
 		// Listen for keyboard events in the input box.
 		// Using KeyDownHandler since the handler given in the tutorial does not work,
 		// (see http://code.google.com/p/google-web-toolkit/issues/detail?id=5558)
@@ -175,6 +191,21 @@ public class Stockwatch implements EntryPoint {
 				}
 			}
 		});
+	}
+	
+	private void addData() {
+		String data = newDataTextArea.getValue();
+		AsyncCallback<Void> callback = new AsyncCallback<Void>() {
+		      public void onFailure(Throwable caught) {
+		    	  errorMsgLabel.setText("Could not submit data to database!");
+		    	  errorMsgLabel.setVisible(true);
+		      }
+		      public void onSuccess(Void result) {
+		    	  newDataTextArea.setText("");
+		      }
+		};
+		
+		populationSvc.addData(data, callback);
 	}
 
 	private void addCountry() {

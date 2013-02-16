@@ -11,12 +11,17 @@ public class PopulationServiceImpl extends RemoteServiceServlet implements
 	private static final long serialVersionUID = 2L;
 	
 	private DataManager dm;
-
+	
 	@Override
-	public Country[] getPopulations(String[] names) throws DelistedException {
+	public void init() {
 		dm = new DataManager();
 		dm.connect();
 		dm.create();
+		dm.close();
+	}
+
+	@Override
+	public Country[] getPopulations(String[] names) throws DelistedException {
 		dm.connect();
 		
 		Country[] countries = new Country[names.length];
@@ -30,12 +35,10 @@ public class PopulationServiceImpl extends RemoteServiceServlet implements
 		return countries;
 	}
 
-//	@Override
-//	public Boolean addData(String data) {
-//		dm.connect();
-//		dm.addPopulationsFromString(data);
-//		dm.close();
-//		
-//		return true;
-//	}
+	@Override
+	public void addData(String data) {
+		dm.connect();
+		dm.addPopulationsFromString(data);
+		dm.close();
+	}
 }

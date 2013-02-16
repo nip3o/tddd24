@@ -6,5 +6,6 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 @RemoteServiceRelativePath("populations")
 public interface PopulationService extends RemoteService {
 	Country[] getPopulations(String[] names) throws DelistedException;
-//	Boolean addData(String data);
+	void addData(String data);
+	void init();
 }
